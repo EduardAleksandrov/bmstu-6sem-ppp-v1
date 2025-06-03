@@ -27,3 +27,5 @@ Send, Recv
 1. Практика №1 [link](./test1/)
 
 2. Практика №2 - Пользовательский тип данных vector [link](./test2/)
+
+3. Практика №3 - MPI_Reduce [link](./test3/)
