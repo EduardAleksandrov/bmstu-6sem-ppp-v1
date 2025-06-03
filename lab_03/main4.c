@@ -8,11 +8,13 @@ int main(int argc, char **argv) {
     int myrank, nprocs, len;
     char name[MPI_MAX_PROCESSOR_NAME];
     int *buf;
+    int *buf1;
     MPI_Status st;
     double times[10];
     double data[10];
 
     buf = (int *) malloc(sizeof(int) * (SIZE * 1024 + 100));
+    buf1 = (int *) malloc(sizeof(int) * (SIZE * 1024 + 100));
 
     MPI_Init(&argc, &argv);
 
@@ -34,8 +36,21 @@ int main(int argc, char **argv) {
             for (cl = 0; cl < 11; cl++) {
                 time = MPI_Wtime();
                 for (i = 0; i < 100; i++) {
-                    MPI_Send(buf, sz, MPI_INT, myrank + 1, 10, MPI_COMM_WORLD);
-                    MPI_Recv(buf, sz + 100, MPI_INT, myrank + 1, 20, MPI_COMM_WORLD, &st);
+                    int* tmp;
+                    MPI_Sendrecv( buf, sz, MPI_INT,
+                                  myrank + 1, 10,
+                                  buf1, sz+100, MPI_INT,
+                                  myrank + 1, 20,
+                                  MPI_COMM_WORLD, &st);
+
+                    if(myrank == 0 && i < 4)
+                    {
+                        printf("[%d] %6d %6d %6d %6d\n", myrank, buf[0], buf[1], buf[2], buf[sz-1]);
+                    }
+
+                    tmp = buf;
+                    buf = buf1;
+                    buf1 = tmp;
                 }
                 time = MPI_Wtime() - time;
                 printf(
@@ -61,10 +76,20 @@ int main(int argc, char **argv) {
     }
     else {
         int i, cl, sz = SIZE;
+        for (i = 0; i < SIZE * 1024; i++) {
+            buf[i] = i + 100;
+        }
         for (cl = 0; cl < 11; cl++) {
             for (i = 0; i < 100; i++) {
-                MPI_Recv(buf, sz + 100, MPI_INT, myrank - 1, 10, MPI_COMM_WORLD, &st);
-                MPI_Send(buf, sz, MPI_INT, myrank - 1, 20, MPI_COMM_WORLD);
+                int* tmp;
+                MPI_Sendrecv( buf, sz, MPI_INT,
+                              myrank - 1, 20,
+                              buf1, sz+100, MPI_INT,
+                              myrank - 1, 10,
+                              MPI_COMM_WORLD, &st);
+                tmp = buf;
+                buf = buf1;
+                buf1 = tmp;
             }
             sz *= 2;
         }

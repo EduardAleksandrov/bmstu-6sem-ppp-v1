@@ -26,16 +26,26 @@ int main(int argc, char **argv) {
         if (myrank < nprocs - 1) {
             int i, cl, sz = SIZE;
             double time;
+            MPI_Request re[2];
+            MPI_Status st[2];
+            int* buf0, *buf1;
 
             for (i = 0; i < SIZE * 1024; i++) {
                 buf[i] = i + 10;
             }
 
+            buf0 = buf;
+            buf1 = (int*) malloc ( sizeof(int)*(SIZE*1024 + 100) );
+
             for (cl = 0; cl < 11; cl++) {
                 time = MPI_Wtime();
                 for (i = 0; i < 100; i++) {
-                    MPI_Send(buf, sz, MPI_INT, myrank + 1, 10, MPI_COMM_WORLD);
-                    MPI_Recv(buf, sz + 100, MPI_INT, myrank + 1, 20, MPI_COMM_WORLD, &st);
+                    MPI_Issend(buf0, sz, MPI_INT, myrank+1, 10, MPI_COMM_WORLD, &re[0]);
+                    MPI_Irecv( buf1, sz+100, MPI_INT, myrank+1, 20, MPI_COMM_WORLD, &re[1]);
+                    MPI_Waitall(2,re,st);
+                    buf = buf0;
+                    buf0=buf1;
+                    buf1=buf;
                 }
                 time = MPI_Wtime() - time;
                 printf(
@@ -54,6 +64,8 @@ int main(int argc, char **argv) {
                 data[cl] = ((double) sz)*sizeof(int)*200.0/(1024.0*1024.0);
                 sz *= 2;
             }
+            free(buf0);
+            free(buf1);
         }
         else {
             printf("[%d] Idle\n", myrank);
@@ -61,13 +73,31 @@ int main(int argc, char **argv) {
     }
     else {
         int i, cl, sz = SIZE;
+        
+        MPI_Request re[2];
+        MPI_Status st[2];
+        int* buf0, *buf1;
+
+        for (i = 0; i < SIZE * 1024; i++)
+            buf[i] = i*10 + 100;
+
+        buf0 = buf;
+        buf1 = (int*) malloc ( sizeof(int)*(SIZE*1024 + 100) );
+
         for (cl = 0; cl < 11; cl++) {
             for (i = 0; i < 100; i++) {
-                MPI_Recv(buf, sz + 100, MPI_INT, myrank - 1, 10, MPI_COMM_WORLD, &st);
-                MPI_Send(buf, sz, MPI_INT, myrank - 1, 20, MPI_COMM_WORLD);
+                MPI_Issend(buf0, sz, MPI_INT, myrank-1, 20, MPI_COMM_WORLD, &re[0]);
+                MPI_Irecv( buf1, sz+100, MPI_INT, myrank-1, 10, MPI_COMM_WORLD, &re[1]);
+                MPI_Waitall(2,re,st);
+                
+                buf = buf0;
+                buf0=buf1;
+                buf1=buf;
             }
             sz *= 2;
         }
+        free(buf0);
+        free(buf1);
     }
 
     MPI_Finalize();
