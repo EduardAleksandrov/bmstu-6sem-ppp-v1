@@ -130,5 +130,34 @@ int main(int argc, char* argv[])
     printf("Sum = %f\n", sum);
 //---
 
+    int x = 10; // Оригинальная переменная
+
+    #pragma omp parallel firstprivate(x) // поток получает свою копию переменной, которая инициализируется значением переменной из родительского контекста.
+    {
+        // Каждый поток получает свою копию x, инициализированную значением 10
+        x += omp_get_thread_num(); // Изменяем копию x
+        printf("Thread %d: x = %d\n", omp_get_thread_num(), x);
+    }
+
+    // Значение x в родительском контексте остается неизменным
+    printf("Original x after parallel region: %d\n", x);
+
+    
+    
+    x = 0; // Оригинальная переменная
+
+    #pragma omp parallel for lastprivate(x)
+    for (int i = 0; i < 5; i++) {
+        x = i; // Каждому потоку присваивается значение i
+        printf("Thread %d: x = %d\n", omp_get_thread_num(), x);
+    }
+
+    // После завершения параллельного региона x будет равен 4
+    printf("Last value of x after parallel region: %d\n", x);
+
+//---
+
+
+
     return 0;
 }
