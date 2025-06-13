@@ -109,7 +109,8 @@ int main(int argc, char* argv[])
     #pragma omp parallel \
         shared(a, N, sum) \
         private( /* перечислим переменные, приватными для каждой нити */         \
-                  i, local_sum )
+                  i, local_sum ) \
+        num_threads(15)
     {
         local_sum = 0.0;  // приватная копия суммы для каждой нити
 
