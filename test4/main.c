@@ -158,7 +158,46 @@ int main(int argc, char* argv[])
 
 //---
 
+    i=0;
+    int SIZE = 1000;
+    double array[SIZE];
+    sum = 0.0;
 
+    // Initialize the array
+    for (i = 0; i < SIZE; i++) {
+        array[i] = i * 1.0; // Fill the array with values 0.0, 1.0, ..., 999.0
+    }
+
+    // Define a threshold for parallel execution
+    int threshold = 100;
+
+    // Parallel region with omp if
+    #pragma omp parallel if (SIZE > threshold) num_threads(6)
+    {
+        double local_sum = 0.0;
+
+        // Parallel for loop
+        #pragma omp for
+        for (i = 0; i < SIZE; i++) {
+            local_sum += array[i];
+        }
+
+        // Critical section to update the global sum
+        #pragma omp critical
+        {
+            sum += local_sum;
+        }
+
+        // Check if we are in a parallel region inside the parallel block
+        if (omp_in_parallel()) 
+        {
+            printf("Now in a parallel region. Thread ID: %d\n", omp_get_thread_num());
+        }
+    }
+
+    printf("Total sum: %f\n", sum);
+    
+// ---
 
     return 0;
 }
