@@ -22,6 +22,10 @@ Send, Recv
 
 Коллективное взаимодействие (MPI_Scatter, MPI_Bcast, MPI_Gather)
 
+6. Лабораторная работа №6 [link](./lab_06/)
+
+Библиотека OpenMP
+
 ## Практика
 
 1. Практика №1 [link](./test1/)
