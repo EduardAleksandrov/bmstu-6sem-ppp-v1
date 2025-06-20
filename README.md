@@ -37,3 +37,5 @@ Send, Recv
 4. Практика №4 - OpenMP первая программа [link](./test4/)
 
     OpenMP идет в gcc, отдельно устанавливать не надо
+
+5. Практика №5 - OpenMP simd [link](./test5/)
